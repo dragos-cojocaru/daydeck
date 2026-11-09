@@ -1,0 +1,77 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  secrets:
+    name: Secret scan (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  checks:
+    name: Lint, types, tests, build
+    runs-on: ubuntu-latest
+    # A real Postgres, so database tests run with real concurrent connections and row locks
+    # (for example two token refreshes racing). Without TEST_DATABASE_URL they use PGlite.
+    services:
+      postgres:
+        # The same major version as Neon in production.
+        image: postgres:18
+        env:
+          POSTGRES_USER: daydeck
+          POSTGRES_PASSWORD: daydeck
+          POSTGRES_DB: daydeck_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U daydeck"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      TURBO_TELEMETRY_DISABLED: 1
+      TEST_DATABASE_URL: postgresql://daydeck:daydeck@localhost:5432/daydeck_test
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - name: Cache Turborepo
+        uses: actions/cache@v4
+        with:
+          path: .turbo/cache
+          key: turbo-${{ runner.os }}-${{ github.sha }}
+          restore-keys: turbo-${{ runner.os }}-
+      # Turbopack keeps a build cache in .next/cache; reusing it makes CI builds faster.
+      - name: Cache Next.js build
+        uses: actions/cache@v4
+        with:
+          path: apps/web/.next/cache
+          key: nextjs-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.sha }}
+          restore-keys: nextjs-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm audit --prod --audit-level high
+        continue-on-error: true
+      - name: Biome
+        run: pnpm biome ci .
+      - name: Generated Buffer types are up to date
+        run: pnpm codegen && git diff --exit-code -- packages/buffer/src/gql
+      - run: pnpm turbo run typecheck test build --cache-dir=.turbo/cache

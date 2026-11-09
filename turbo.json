@@ -1,0 +1,52 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "ui": "tui",
+  "globalEnv": ["NODE_ENV"],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
+      "env": [
+        "BUFFER_*",
+        "TOKEN_ENCRYPTION_KEY",
+        "DATABASE_URL",
+        "DATABASE_URL_UNPOOLED",
+        "INNGEST_*",
+        "MATCHER_PROVIDER",
+        "JEV_API_KEY",
+        "ANTHROPIC_API_KEY",
+        "SENTRY_*",
+        "NEXT_PUBLIC_*",
+        "FEATURE_*",
+        "PRIVACY_CONTACT_*",
+        "DEMO_INVITE_CODE",
+        "DEMO_UNTIL",
+        "NEXT_DIST_DIR",
+        "VERCEL",
+        "VERCEL_*",
+        "CI"
+      ]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "typecheck": {
+      "dependsOn": ["^typecheck"]
+    },
+    "test": {
+      "outputs": ["coverage/**"],
+      "passThroughEnv": ["TEST_DATABASE_URL"]
+    },
+    "e2e": {
+      "dependsOn": ["build"],
+      "cache": false,
+      "passThroughEnv": ["PLAYWRIGHT_BASE_URL", "E2E_MOCK_BUFFER_URL"]
+    },
+    "codegen": {
+      "inputs": ["schema.graphql", "src/**/*.ts", "codegen.ts"],
+      "outputs": ["src/gql/**"]
+    }
+  }
+}

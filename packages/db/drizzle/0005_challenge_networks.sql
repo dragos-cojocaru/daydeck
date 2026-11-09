@@ -1,0 +1,1 @@
+ALTER TABLE "challenges" ADD COLUMN "allowed_services" text[] DEFAULT '{}'::text[] NOT NULL;

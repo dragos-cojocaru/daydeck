@@ -1,0 +1,2 @@
+ALTER TABLE "seen_posts" ADD COLUMN "preview" text;--> statement-breakpoint
+ALTER TABLE "seen_posts" ADD CONSTRAINT "seen_posts_preview_length_check" CHECK (char_length("seen_posts"."preview") <= 100);

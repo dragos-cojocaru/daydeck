@@ -1,0 +1,1 @@
+ALTER TABLE "participants" ADD COLUMN "muted_places" text[] DEFAULT '{}'::text[] NOT NULL;

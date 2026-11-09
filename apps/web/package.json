@@ -1,0 +1,50 @@
+{
+  "name": "@daydeck/web",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": "26.x"
+  },
+  "type": "module",
+  "scripts": {
+    "dev": "next dev --experimental-https",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "next typegen && tsc --noEmit",
+    "test": "vitest run --passWithNoTests",
+    "e2e": "playwright test",
+    "mock:buffer": "node e2e/mock-buffer/server.ts"
+  },
+  "dependencies": {
+    "@base-ui/react": "^1.9.0",
+    "@daydeck/buffer": "workspace:*",
+    "@daydeck/db": "workspace:*",
+    "@daydeck/matcher": "workspace:*",
+    "@daydeck/ui": "workspace:*",
+    "@sentry/nextjs": "^11.11.0",
+    "@vercel/functions": "^3.11.0",
+    "inngest": "^4.26.2",
+    "lucide-react": "^1.70.0",
+    "motion": "^14.10.1",
+    "next": "16.4.5",
+    "next-themes": "^0.4.6",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "server-only": "^0.0.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
+    "@daydeck/config": "workspace:*",
+    "@playwright/test": "^1.65.0",
+    "@tailwindcss/turbopack": "^4.3.5",
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "babel-plugin-react-compiler": "^1.0.0",
+    "msw": "^3.0.4",
+    "tailwindcss": "^4.3.5",
+    "typescript": "^5.9.3",
+    "vitest": "^5.1.0"
+  }
+}

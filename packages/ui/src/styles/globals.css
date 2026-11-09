@@ -1,0 +1,274 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+@source "../../../../apps/**/*.{ts,tsx}";
+@source "../**/*.{ts,tsx}";
+
+/*
+ * Forest green is the primary colour and sapphire blue the second one (focus rings and
+ * scheduled days), on Notion's white and grey surfaces in light and its dark greys in dark.
+ * Each value meets WCAG contrast on the surfaces it sits on. Buffer's colours are avoided.
+ */
+
+@theme inline {
+  --font-sans: var(--font-text);
+  --font-heading: var(--font-display);
+  --font-mono: var(--font-code);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* App chrome: the shadcn sidebar's tokens. The sidebar sits one step below the page surface. */
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  /* The dim layer behind a drawer or dialog. */
+  --color-scrim: var(--scrim);
+
+  /* Board day states. Each state also has its own icon, so colour is never the only signal. */
+  --color-ember: var(--ember);
+  --color-ember-glow: var(--ember-glow);
+  /* Icons of empty, waiting and paused days: at least 3:1 on their tile (WCAG 1.4.11). */
+  --color-cell-line: var(--cell-line);
+  /* Day tiles: a grey tile, a blue tile for scheduled, and the ink of icons on each tile. */
+  --color-tile: var(--tile);
+  --color-planned-tint: var(--planned-tint);
+  --color-planned-ink: var(--planned-ink);
+  --color-ember-ink: var(--ember-ink);
+
+  /* Board motion: a cell ignites once when a post lands; today's column pulses faintly. */
+  --animate-ignite: ignite 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.2) 1;
+  --animate-ignite-fade: ignite-fade 0.3s ease-out 1;
+  --animate-today-pulse: today-pulse 3s ease-in-out infinite;
+  /* Loading: a soft band of light sweeps across, like a skeleton's wave. */
+  --animate-shimmer: shimmer 1.4s ease-in-out infinite;
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+}
+
+:root {
+  --radius: 0.75rem;
+  /* Scrollbars: a thin thumb on a clear track, darker on hover. The thumb keeps 3:1 against
+     the page (WCAG 1.4.11), so it is easy to find. */
+  --scrollbar-thumb: #8a8a87;
+  --scrollbar-thumb-hover: #6b6b68;
+
+  /* Neutrals: Notion's whites, greys and borders. */
+  --background: #ffffff;
+  --foreground: oklch(0.22 0.025 265);
+  --card: #ffffff;
+  --card-foreground: oklch(0.22 0.025 265);
+  --popover: #ffffff;
+  --popover-foreground: oklch(0.22 0.025 265);
+  --primary: oklch(0.47 0.11 150);
+  --primary-foreground: oklch(0.99 0.004 150);
+  --secondary: #f1f1ef;
+  --secondary-foreground: oklch(0.26 0.03 265);
+  --muted: #f1f1ef;
+  --muted-foreground: oklch(0.48 0.02 265);
+  --accent: oklch(0.95 0.03 150);
+  --accent-foreground: oklch(0.3 0.07 150);
+  /* Derived: dark enough for 4.5:1 on its own 10% tint (destructive buttons). */
+  --destructive: oklch(0.5 0.19 25);
+  --border: #e9e9e7;
+  --input: #dfdfdc;
+  --ring: oklch(0.52 0.17 262);
+
+  /* Notion's sidebar grey, one step darker than the page; the hovered or current row one more. */
+  --sidebar: #f7f7f5;
+  --sidebar-accent: #ebebea;
+  /* The rest follow the page tokens, so both themes stay in step. */
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent-foreground: var(--foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--ring);
+  --scrim: oklch(0.2 0.02 265 / 0.4);
+
+  --ember: oklch(0.58 0.15 150);
+  --ember-glow: oklch(0.86 0.12 150);
+  --cell-line: oklch(0.6 0.01 260);
+  --tile: #f1f1ef;
+  --planned-tint: oklch(0.95 0.03 262);
+  --planned-ink: oklch(0.5 0.15 262);
+  --ember-ink: #ffffff;
+}
+
+.dark {
+  --scrollbar-thumb: #6b6b6b;
+  --scrollbar-thumb-hover: #8a8a8a;
+  --background: #191919;
+  --foreground: oklch(0.95 0.008 200);
+  --card: #202020;
+  --card-foreground: oklch(0.95 0.008 200);
+  --popover: #252525;
+  --popover-foreground: oklch(0.95 0.008 200);
+  --primary: oklch(0.74 0.14 150);
+  --primary-foreground: oklch(0.17 0.03 155);
+  --secondary: #2f2f2f;
+  --secondary-foreground: oklch(0.95 0.008 200);
+  --muted: #252525;
+  --muted-foreground: oklch(0.72 0.015 265);
+  --accent: oklch(0.3 0.05 155);
+  --accent-foreground: oklch(0.95 0.02 150);
+  /* Light enough for 4.5:1 or more on its own tints (up to 20%) on the page, cards and dialogs. */
+  --destructive: oklch(0.76 0.15 25);
+  --border: #2f2f2f;
+  --input: #373737;
+  --ring: oklch(0.7 0.14 262);
+
+  /* Like Notion: in dark, the sidebar is one step lighter than the page, the active row more. */
+  --sidebar: #202020;
+  --sidebar-accent: #2c2c2c;
+  --scrim: oklch(0 0 0 / 0.6);
+
+  --ember: oklch(0.7 0.16 150);
+  --ember-glow: oklch(0.86 0.12 150);
+  --cell-line: oklch(0.62 0.01 260);
+  --tile: #2f2f2f;
+  --planned-tint: oklch(0.3 0.06 262);
+  --planned-ink: oklch(0.72 0.12 262);
+  --ember-ink: oklch(0.2 0.04 155);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    /* One thin scrollbar everywhere: the sidebar, chat, lists and menus. */
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
+  }
+  *:hover {
+    scrollbar-color: var(--scrollbar-thumb-hover) transparent;
+  }
+  /* Browsers without scrollbar-color (older Safari) get the same look this way. */
+  @supports not (scrollbar-color: auto) {
+    ::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      border: 3px solid transparent;
+      border-radius: 9999px;
+      background: var(--scrollbar-thumb) padding-box;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--scrollbar-thumb-hover) padding-box;
+    }
+  }
+  /* The page always keeps room for its scrollbar, so short and long pages are the same width and
+     centered things, like the header, do not jump sideways between them. */
+  html {
+    scrollbar-gutter: stable;
+    /* Keeps what gets focus or a #link clear of the sticky top bar (WCAG 2.4.11). */
+    scroll-padding-top: 4.5rem;
+  }
+  /* People who ask their system for less motion get none: every animation ends at once. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
+  h1,
+  h2,
+  h3 {
+    @apply font-heading;
+  }
+  /* Tailwind v4 gives buttons the default arrow cursor. Everything clickable shows the pointer. */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  [role="menuitem"]:not([data-disabled]),
+  summary,
+  select:not(:disabled),
+  input[type="checkbox"]:not(:disabled),
+  input[type="radio"]:not(:disabled),
+  /* Base UI's switch is a span with role="switch", and its label comes right after it. */
+    [role="switch"]:not([data-disabled]),
+  [role="switch"]:not([data-disabled]) ~ label {
+    cursor: pointer;
+  }
+}
+
+@keyframes ignite {
+  0% {
+    transform: scale(0.6);
+    box-shadow: 0 0 0 0 var(--ember-glow);
+  }
+  60% {
+    transform: scale(1.15);
+    box-shadow: 0 0 18px 4px var(--ember-glow);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 12px -2px var(--ember-glow);
+  }
+}
+
+/* The reduced-motion version of ignite: a crossfade, no movement. */
+@keyframes ignite-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes today-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes shimmer {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}

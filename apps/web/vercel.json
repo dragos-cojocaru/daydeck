@@ -1,0 +1,6 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "pnpm --filter @daydeck/db db:migrate && pnpm --filter @daydeck/web build",
+  "fluid": true,
+  "regions": ["iad1"]
+}

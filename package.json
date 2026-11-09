@@ -1,0 +1,27 @@
+{
+  "name": "daydeck",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.0.4",
+  "engines": {
+    "node": "26.x"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "e2e": "turbo run e2e",
+    "codegen": "turbo run codegen",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write ."
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.4.2",
+    "@daydeck/config": "workspace:*",
+    "@types/node": "^26.6.6",
+    "turbo": "^2.11.10",
+    "typescript": "^5.9.3"
+  }
+}

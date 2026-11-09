@@ -1,0 +1,32 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "root": true,
+  "extends": ["@daydeck/config/biome"],
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
+  "files": {
+    "ignoreUnknown": true,
+    "includes": [
+      "**",
+      "!**/src/gql",
+      "!**/schema.graphql",
+      "!**/drizzle/meta",
+      "!**/components.json"
+    ]
+  },
+  "overrides": [
+    {
+      "includes": ["apps/web/features/board/board-grid.tsx"],
+      "linter": {
+        "rules": {
+          "a11y": {
+            "useSemanticElements": "off"
+          }
+        }
+      }
+    }
+  ]
+}

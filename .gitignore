@@ -1,0 +1,53 @@
+# dependencies
+node_modules/
+
+# builds
+.next/
+.next-e2e/
+out/
+dist/
+build/
+*.tsbuildinfo
+next-env.d.ts
+
+# turborepo
+.turbo/
+
+# testing
+coverage/
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
+# env files: only the example is committed
+.env*
+!.env.example
+
+# vercel
+.vercel
+
+# local https certificates from next dev --experimental-https
+certificates/
+*.pem
+
+# Laws of UX Agent Skills by Pip Decks: a paid, single-user license that does not
+# allow publishing. The skill folders are listed one by one so other files in
+# .claude/ (for example settings.json) can still be committed.
+laws-of-ux-agent-skills.zip
+laws-of-ux-agent-skills/
+.claude/skills/laws-of-ux/
+.claude/skills/pip-library/
+.claude/skills/ux-audit/
+.claude/skills/ux-figma-audit/
+.claude/skills/ux-fix/
+.claude/skills/ux-flows/
+.claude/skills/ux-justify/
+.claude/skills/ux-methods/
+.claude/skills/ux-preflight/
+# private Claude Code rules that point to the skills above
+CLAUDE.local.md
+
+# misc
+.DS_Store
+*.log

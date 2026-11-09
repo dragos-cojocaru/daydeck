@@ -1,0 +1,10 @@
+packages:
+  - apps/*
+  - packages/*
+
+# Packages allowed to run install scripts. Anything not listed is blocked.
+allowBuilds:
+  esbuild: true
+  protobufjs: false
+  sharp: false
+  unrs-resolver: false

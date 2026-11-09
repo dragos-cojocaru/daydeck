@@ -1,0 +1,3 @@
+ALTER TABLE "challenges" ADD COLUMN "show_on_home" boolean DEFAULT false NOT NULL;--> statement-breakpoint
+CREATE INDEX "challenges_on_home_idx" ON "challenges" USING btree ("id") WHERE "challenges"."show_on_home";--> statement-breakpoint
+ALTER TABLE "challenges" ADD CONSTRAINT "challenges_show_on_home_check" CHECK (not "challenges"."show_on_home" or ("challenges"."visibility" = 'public' and "challenges"."status" = 'open' and not "challenges"."invite_paused"));

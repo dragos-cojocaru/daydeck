@@ -1,0 +1,28 @@
+{
+  "name": "@daydeck/buffer",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "schema:download": "node scripts/download-schema.ts",
+    "codegen": "graphql-codegen --config codegen.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@graphql-typed-document-node/core": "^3.2.0",
+    "graphql": "^17.1.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@graphql-codegen/cli": "^7.4.6",
+    "@graphql-codegen/client-preset": "^6.2.3",
+    "@daydeck/config": "workspace:*",
+    "@types/node": "^26.6.6",
+    "msw": "^3.0.4",
+    "vitest": "^5.1.0"
+  }
+}
