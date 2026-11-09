@@ -94,6 +94,7 @@ export async function dataOverview(
         visibility: challenges.visibility,
         onHome: challenges.showOnHome,
         closedAt: challenges.closedAt,
+        challengeTimezone: challenges.timezone,
       })
       .from(participants)
       .innerJoin(challenges, eq(challenges.id, participants.challengeId))
@@ -153,7 +154,11 @@ export async function dataOverview(
       days: daysOf.get(row.id) ?? 0,
       deletion:
         row.status === "closed" && row.closedAt
-          ? deletionCountdown(row.closedAt, now, row.timezone)
+          ? deletionCountdown(
+              { closedAt: row.closedAt, timeZone: row.challengeTimezone },
+              now,
+              row.timezone,
+            )
           : null,
     })),
     postsLinked: linked?.n ?? 0,

@@ -18,6 +18,8 @@ let clock: { now: Date };
 let close: () => Promise<void>;
 let calls: { op: string; variables: Record<string, unknown> }[];
 let remote: RemotePost[];
+/** The IDs on Buffer's Ideas board. */
+let remoteIdeas: string[];
 let participantId: string;
 let userId: string;
 
@@ -50,6 +52,7 @@ beforeEach(async () => {
   ({ deps, clock, close } = await setupDeps());
   calls = [];
   remote = [];
+  remoteIdeas = [];
   const fake = new FakeTokenServer();
   const user = await createUser(deps);
   userId = user.id;
@@ -106,6 +109,15 @@ beforeEach(async () => {
                 edges: remote.map((node) => ({
                   node: { ...node, via: "buffer", externalLink: null, channelId: "ch-1" },
                 })),
+                pageInfo: { hasNextPage: false, endCursor: null },
+              },
+            },
+          });
+        case "IdeaIds":
+          return HttpResponse.json({
+            data: {
+              ideas: {
+                edges: remoteIdeas.map((id) => ({ node: { id } })),
                 pageInfo: { hasNextPage: false, endCursor: null },
               },
             },
@@ -296,6 +308,63 @@ describe("posts written elsewhere", () => {
     const result = await check(null);
     expect(result).toMatchObject({ status: "checked", unmatched: 1, suggested: 0 });
     expect((await days()).every((day) => day.state === "open")).toBe(true);
+  });
+});
+
+describe("ideas saved to Buffer", () => {
+  /** Day 1 holds an idea saved from its prompt, and nothing else. */
+  async function saveIdea(ideaId: string) {
+    const day = (await days())[0];
+    if (!day) throw new Error("no day");
+    await deps.db
+      .update(schema.entries)
+      .set({ state: "saved", bufferIdeaId: ideaId })
+      .where(eq(schema.entries.id, day.id));
+  }
+  async function grantIdeasRead() {
+    await deps.db
+      .update(schema.bufferConnections)
+      .set({
+        scopes: ["account:read", "posts:read", "posts:write", "ideas:read", "offline_access"],
+      })
+      .where(eq(schema.bufferConnections.userId, userId));
+  }
+
+  it("frees a day whose idea was deleted in Buffer", async () => {
+    await grantIdeasRead();
+    await saveIdea("idea-1");
+    remoteIdeas = ["someone-elses-idea"];
+    await check();
+    expect((await days())[0]).toMatchObject({ state: "open", bufferIdeaId: null });
+  });
+
+  it("keeps a day whose idea is still there", async () => {
+    await grantIdeasRead();
+    await saveIdea("idea-1");
+    remoteIdeas = ["idea-1"];
+    await check();
+    expect((await days())[0]).toMatchObject({ state: "saved", bufferIdeaId: "idea-1" });
+  });
+
+  it("leaves ideas alone for a connection made without ideas:read", async () => {
+    await saveIdea("idea-1");
+    await check();
+    expect(calls.map((call) => call.op)).not.toContain("IdeaIds");
+    expect((await days())[0]).toMatchObject({ state: "saved", bufferIdeaId: "idea-1" });
+  });
+
+  it("keeps the idea when Buffer cannot answer, and the check still succeeds", async () => {
+    await grantIdeasRead();
+    await saveIdea("idea-1");
+    server.use(
+      http.post(API_URL, async ({ request }) => {
+        const body = (await request.clone().json()) as { query: string };
+        if (!/query IdeaIds/.test(body.query)) return undefined;
+        return HttpResponse.json({ errors: [{ message: "Something went wrong" }] });
+      }),
+    );
+    expect(await check()).toMatchObject({ status: "checked" });
+    expect((await days())[0]).toMatchObject({ state: "saved", bufferIdeaId: "idea-1" });
   });
 });
 

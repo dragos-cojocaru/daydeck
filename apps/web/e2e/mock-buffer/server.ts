@@ -481,6 +481,34 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
         headers,
       );
     }
+    if (/\bquery IdeaIds\b/.test(body.query)) {
+      // Ideas need ideas:read, as on the real API. One page is enough for tests.
+      if (!grant.scope.split(" ").includes("ideas:read")) {
+        return send(
+          res,
+          200,
+          {
+            errors: [
+              { message: "Missing scope ideas:read", extensions: { code: "INSUFFICIENT_SCOPE" } },
+            ],
+          },
+          headers,
+        );
+      }
+      return send(
+        res,
+        200,
+        {
+          data: {
+            ideas: {
+              edges: account.ideas.map((idea) => ({ node: { id: idea.id } })),
+              pageInfo: { hasNextPage: false, endCursor: null },
+            },
+          },
+        },
+        headers,
+      );
+    }
     if (/\bmutation CreateIdea\b/.test(body.query)) {
       const content = (input.content ?? {}) as { title?: string };
       const idea = {
@@ -759,6 +787,7 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
         | "set-channel"
         | "add-post"
         | "set-post"
+        | "delete-idea"
         | "set-account";
       count?: number;
       account?: string;
@@ -768,6 +797,8 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
       /** For "add-post" and "set-post": a post written in Buffer, or changes to one. */
       post?: Partial<MockPost>;
       postId?: string;
+      /** For "delete-idea": the idea to remove. */
+      ideaId?: string;
       /** For "set-account": a new name, as if the person renamed their Buffer account. */
       name?: string;
     };
@@ -816,6 +847,12 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
         const account = state.accounts[command.account ?? "ana"];
         const post = account?.posts.find((p) => p.id === command.postId);
         if (post && command.post) Object.assign(post, command.post);
+        break;
+      }
+      case "delete-idea": {
+        // Deletes an idea as if the person removed it from Buffer's Ideas board.
+        const account = state.accounts[command.account ?? "ana"];
+        if (account) account.ideas = account.ideas.filter((idea) => idea.id !== command.ideaId);
         break;
       }
       case "set-account": {

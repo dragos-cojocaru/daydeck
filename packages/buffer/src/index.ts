@@ -29,6 +29,7 @@ export {
 } from "./oauth";
 export { AccountQuery, type BufferAccount, fetchAccount } from "./queries/account";
 export { type BufferChannel, ChannelsQuery, fetchChannels } from "./queries/channels";
+export { findIdeas, IdeaIdsQuery } from "./queries/ideas";
 export { type BufferPostText, fetchPostText } from "./queries/post";
 export { type BufferPost, fetchParticipantPosts } from "./queries/posts";
 export { fetchScheduledPosts, fetchWeekLimits, type ScheduledPost } from "./queries/schedule";

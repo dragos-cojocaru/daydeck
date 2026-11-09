@@ -22,6 +22,7 @@
         "PRIVACY_CONTACT_*",
         "DEMO_INVITE_CODE",
         "DEMO_UNTIL",
+        "VERCEL_PROJECT_PRODUCTION_URL",
         "NEXT_DIST_DIR",
         "VERCEL",
         "VERCEL_*",

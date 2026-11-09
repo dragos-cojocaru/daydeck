@@ -1,18 +1,35 @@
 import "@daydeck/ui/globals.css";
 import { cn } from "@daydeck/ui/lib/utils";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { OfflineNotice } from "@/components/offline-notice";
 import { ThemeProvider } from "@/components/theme-provider";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE, siteUrl } from "@/lib/site";
 import { codeFont, displayFont, textFont } from "./fonts";
 
+// The defaults every page starts from. Search results and link previews (Open Graph, X cards)
+// need full URLs, built from metadataBase. The preview image is app/opengraph-image.tsx; pages
+// with their own image (an invite, a recap) have an opengraph-image file next to them.
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl()),
+  applicationName: SITE_NAME,
   title: {
-    default: "Daydeck",
-    template: "%s · Daydeck",
+    default: `${SITE_NAME}: ${SITE_TAGLINE.toLowerCase()}`,
+    template: `%s · ${SITE_NAME}`,
   },
-  description:
-    "Run a posting challenge on top of Buffer: daily prompts, drafts in Buffer, automatic check-off.",
+  description: SITE_DESCRIPTION,
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    locale: "en_GB",
+    title: `${SITE_NAME}: ${SITE_TAGLINE.toLowerCase()}`,
+    description: SITE_DESCRIPTION,
+    url: "/",
+  },
+  twitter: { card: "summary_large_image" },
 };
+
+// The brand green colors the browser bar on phones, and the edge of a link preview in Discord.
+export const viewport: Viewport = { themeColor: "#206b38" };
 
 // The document only. Public pages (app/(public)) add the simple header; signed-in pages
 // (app/(app)) add the sidebar shell.

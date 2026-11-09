@@ -80,10 +80,10 @@ export function JoinForm({
             can delete messages, remove people and ban them.
           </li>
           <li>
-            Daydeck reads the posts on the channels you pick, only to check off your days. It keeps
-            no post text, except a draft you choose to share for feedback, what you write or share
-            in Community, and the first 100 characters of a post that waits for you to give it a
-            day.
+            Daydeck reads the posts on the channels you pick, and whether the ideas it saved for you
+            are still there, only to check off your days. It keeps no post text, except a draft you
+            choose to share for feedback, what you write or share in Community, and the first 100
+            characters of a post that waits for you to give it a day.
           </li>
           <li>You can leave the challenge at any time.</li>
         </ul>

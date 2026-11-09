@@ -3,10 +3,16 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { BackLink } from "@/components/back-link";
 import { PageContents } from "@/components/page-contents";
+import { shareMetadata } from "@/lib/site";
 import { env } from "@/server/env";
 import { hosting, recipients } from "@/server/privacy/recipients";
 
-export const metadata: Metadata = { title: "Privacy" };
+export const metadata: Metadata = shareMetadata({
+  title: "Privacy",
+  description:
+    "What Daydeck stores, who sees it, how long it is kept, and how to download or delete all of it.",
+  path: "/privacy",
+});
 
 /** Change this date whenever the text below changes. */
 const UPDATED = "9 November 2026";
@@ -23,8 +29,8 @@ const STORED: [string, string][] = [
     "Their prompts and settings, such as who can see the recap and whether the challenge is listed on Daydeck's homepage.",
   ],
   [
-    "Your challenge posts",
-    "Their Buffer IDs, links and status (draft, scheduled, sent). Not their text, with one exception: for a post you wrote outside Daydeck that waits for you to choose its day, its first 100 characters, so you can tell it apart. They are deleted once the post has its day, when the challenge closes, or after 30 days.",
+    "Your challenge posts and ideas",
+    "The Buffer ID of each idea Daydeck saves for a day, so it can see when you delete one in Buffer. For posts: their Buffer IDs, links and status (draft, scheduled, sent). Not their text, with one exception: for a post you wrote outside Daydeck that waits for you to choose its day, its first 100 characters, so you can tell it apart. They are deleted once the post has its day, when the challenge closes, or after 30 days.",
   ],
   [
     "Drafts you share for feedback",

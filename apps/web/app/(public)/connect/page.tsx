@@ -12,10 +12,16 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { BackLink } from "@/components/back-link";
 import { ConnectNotice } from "@/features/connect/connect-notice";
+import { shareMetadata } from "@/lib/site";
 import { safeNextPath } from "@/server/auth/next-path";
 import { env } from "@/server/env";
 
-export const metadata: Metadata = { title: "Connect Buffer" };
+export const metadata: Metadata = shareMetadata({
+  title: "Connect Buffer",
+  description:
+    "Connect your Buffer account to host or join a posting challenge on Daydeck. Daydeck never publishes anything for you.",
+  path: "/connect",
+});
 
 export default function ConnectPage({ searchParams }: PageProps<"/connect">) {
   // Only when an AI service is on: then a post written outside Daydeck goes to it.
@@ -44,7 +50,8 @@ export default function ConnectPage({ searchParams }: PageProps<"/connect">) {
 
       <ul className="flex flex-col gap-4">
         <Fact icon={<EyeIcon />}>
-          Reads your channels and the posts you schedule or send, to check off each day.
+          Reads your channels, the posts you schedule or send, and whether the ideas it saved are
+          still there, to check off each day.
         </Fact>
         <Fact icon={<FilePenLineIcon />}>
           Creates drafts and ideas only, each with a "Daydeck" tag so you can find them. Nothing is

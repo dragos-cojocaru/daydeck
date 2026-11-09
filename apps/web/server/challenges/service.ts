@@ -577,7 +577,11 @@ export async function todayOverview(
       closedAt: challenge.closedAt?.toISOString() ?? null,
       deletion:
         challenge.status === "closed" && challenge.closedAt
-          ? deletionCountdown(challenge.closedAt, now, participant.timezone)
+          ? deletionCountdown(
+              { closedAt: challenge.closedAt, timeZone: challenge.timezone },
+              now,
+              participant.timezone,
+            )
           : null,
       memberCount: memberCountOf.get(challenge.id) ?? 1,
       strip,

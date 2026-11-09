@@ -4,8 +4,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { BackLink } from "@/components/back-link";
 import { GuideContent } from "@/features/guide/guide-content";
+import { shareMetadata } from "@/lib/site";
 
-export const metadata: Metadata = { title: "How Daydeck works" };
+export const metadata: Metadata = shareMetadata({
+  title: "How Daydeck works",
+  description:
+    "How a posting challenge runs on Daydeck: a prompt each day, drafts in Buffer, days that check themselves off, a shared board, a group chat and a recap.",
+  path: "/how-it-works",
+});
 
 /** The guide for visitors who have not connected Buffer. Signed-in links go to /guide. */
 export default function HowItWorksPage() {

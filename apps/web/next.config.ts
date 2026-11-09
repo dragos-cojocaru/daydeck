@@ -41,6 +41,13 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
   poweredByHeader: false,
   typedRoutes: true,
+  // The fonts the link-preview images and the recap badge are drawn with (features/share/og-kit).
+  // They are read from disk by path, so they are named here to ship with those routes.
+  outputFileTracingIncludes: {
+    "/c/**": ["./assets/fonts/*.ttf"],
+    "/recap/**": ["./assets/fonts/*.ttf"],
+    "/opengraph-image": ["./assets/fonts/*.ttf"],
+  },
   turbopack: {
     rules: {
       "*.css": {

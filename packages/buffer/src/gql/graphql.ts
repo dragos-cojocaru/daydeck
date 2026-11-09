@@ -979,6 +979,14 @@ export type ChannelsQueryVariables = Exact<{
 
 export type ChannelsQuery = { channels: Array<{ id: string, organizationId: string, service: Service, name: string, displayName: string | null, avatar: string, timezone: string, isDisconnected: boolean, isQueuePaused: boolean, isLocked: boolean, postingSchedule: Array<{ day: DayOfWeek, paused: boolean, times: Array<string> }> }> };
 
+export type IdeaIdsQueryVariables = Exact<{
+  organizationId: string;
+  after?: string | null | undefined;
+}>;
+
+
+export type IdeaIdsQuery = { ideas: { edges: Array<{ node: { id: string } }>, pageInfo: { hasNextPage: boolean, endCursor: string | null } } };
+
 export type PostTextQueryVariables = Exact<{
   id: string;
 }>;
@@ -1179,6 +1187,21 @@ export const ChannelsDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<ChannelsQuery, ChannelsQueryVariables>;
+export const IdeaIdsDocument = new TypedDocumentString(`
+    query IdeaIds($organizationId: OrganizationId!, $after: String) {
+  ideas(first: 100, after: $after, input: { organizationId: $organizationId }) {
+    edges {
+      node {
+        id
+      }
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<IdeaIdsQuery, IdeaIdsQueryVariables>;
 export const PostTextDocument = new TypedDocumentString(`
     query PostText($id: PostId!) {
   post(input: { id: $id }) {

@@ -20,6 +20,7 @@ export const BUFFER_SCOPES = [
   "account:read",
   "posts:read",
   "posts:write",
+  "ideas:read",
   "ideas:write",
   "notes:read",
   "notes:write",

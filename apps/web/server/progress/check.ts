@@ -3,7 +3,7 @@
 // and from "Check now". Safe to run again: every write is an upsert or a plain state update.
 
 import { createHash } from "node:crypto";
-import { type BufferPost, fetchParticipantPosts, tagPost } from "@daydeck/buffer";
+import { type BufferPost, fetchParticipantPosts, findIdeas, tagPost } from "@daydeck/buffer";
 import {
   type AlertKind,
   type AlertPayload,
@@ -131,7 +131,11 @@ export async function checkParticipant(
   const { participant, challenge } = row;
 
   const [connection] = await db
-    .select({ status: bufferConnections.status, organizationId: bufferConnections.organizationId })
+    .select({
+      status: bufferConnections.status,
+      organizationId: bufferConnections.organizationId,
+      scopes: bufferConnections.scopes,
+    })
     .from(bufferConnections)
     .where(eq(bufferConnections.userId, participant.userId));
   if (!connection) return { status: "skipped", reason: "not-connected" };
@@ -384,6 +388,15 @@ export async function checkParticipant(
     if (goneSeen.length > 0) await db.delete(seenPosts).where(inArray(seenPosts.id, goneSeen));
   }
 
+  // An idea deleted in Buffer no longer saves its day. Only for connections that granted
+  // ideas:read: older ones did not, and they keep working as before, with no new sign-in.
+  if (connection.scopes.includes("ideas:read")) {
+    changedDays += await dropDeletedIdeas(deps, participant.userId, connection.organizationId, {
+      days,
+      timeZone,
+    });
+  }
+
   await db
     .update(participants)
     .set({ lastCheckedAt: now, checkCursor: now })
@@ -406,6 +419,49 @@ export async function checkParticipant(
     suggested: after.filter((seen) => seen.kind === "suggested").length,
     unmatched: after.filter((seen) => seen.kind === "none" || seen.kind === "rejected").length,
   };
+}
+
+/**
+ * Clears the saved idea of each day whose idea is gone from Buffer, then sets the day's state
+ * again: open, or missed once its date has passed. Only days with no posts depend on their idea.
+ * Returns how many days changed. A failure here never fails the check; it tries again next time.
+ */
+async function dropDeletedIdeas(
+  deps: BufferDeps,
+  userId: string,
+  organizationId: string,
+  input: { days: DayRow[]; timeZone: string },
+): Promise<number> {
+  const ideaDays = input.days.filter((day) => day.bufferIdeaId && day.posts.length === 0);
+  if (ideaDays.length === 0) return 0;
+  try {
+    const { found, complete } = await callBuffer(
+      deps,
+      userId,
+      (requestOptions) =>
+        findIdeas(
+          { organizationId, ids: ideaDays.flatMap((day) => day.bufferIdeaId ?? []) },
+          requestOptions,
+        ),
+      // A grant without ideas:read must not stop the connection for everything else.
+      { scopeIsOptional: true },
+    );
+    // Only trusted when every page was read.
+    if (!complete) return 0;
+    let changed = 0;
+    for (const day of ideaDays) {
+      if (!day.bufferIdeaId || found.has(day.bufferIdeaId)) continue;
+      await deps.db.update(entries).set({ bufferIdeaId: null }).where(eq(entries.id, day.id));
+      day.bufferIdeaId = null;
+      if (await refreshDayState(deps.db, day.id, day.date, input.timeZone)) changed += 1;
+    }
+    return changed;
+  } catch (error) {
+    // The class name and Buffer's message only, never the request or a token.
+    const reason = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+    console.warn("Reading Buffer ideas failed; days keep their ideas until the next check", reason);
+    return 0;
+  }
 }
 
 /**

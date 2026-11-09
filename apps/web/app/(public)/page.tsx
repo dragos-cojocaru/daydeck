@@ -12,6 +12,7 @@ import { connection } from "next/server";
 import { Suspense } from "react";
 import { BufferLink } from "@/components/buffer-link";
 import { PopularRow, PopularRowSkeleton } from "@/features/home/popular-challenges";
+import { SITE_DESCRIPTION, SITE_NAME, siteUrl } from "@/lib/site";
 import { getDb } from "@/server/db";
 import { homeChallengesOrNone } from "@/server/home/popular";
 
@@ -64,12 +65,30 @@ const TOGETHER: { title: string; body: string; Icon: LucideIcon }[] = [
   },
 ];
 
+/** What Daydeck is, for search engines (schema.org JSON-LD). `<` is escaped, as Next.js advises. */
+const STRUCTURED_DATA = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  name: SITE_NAME,
+  url: siteUrl(),
+  description: SITE_DESCRIPTION,
+  applicationCategory: "SocialNetworkingApplication",
+  operatingSystem: "Any",
+  isAccessibleForFree: true,
+  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+}).replace(/</g, "\\u003c");
+
 export default function Home() {
   return (
     <main
       id="main"
       className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-12 px-4 py-12 sm:px-6 sm:py-20"
     >
+      <script
+        type="application/ld+json"
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: static JSON with "<" escaped, not HTML
+        dangerouslySetInnerHTML={{ __html: STRUCTURED_DATA }}
+      />
       {/* The hero: what Daydeck is in one sentence, then the actions. */}
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-6">

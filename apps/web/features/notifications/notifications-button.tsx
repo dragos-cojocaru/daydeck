@@ -30,7 +30,7 @@ import {
   useState,
   useTransition,
 } from "react";
-import { notifiedTotal, useLive } from "@/features/community/live";
+import { notifiedPlaces, notifiedTotal, useLive } from "@/features/community/live";
 import { PLACES } from "@/features/community/places";
 import type { Mutable, NotificationRow, NotificationSetting } from "@/server/community/live";
 import type { Place } from "@/server/community/service";
@@ -95,6 +95,12 @@ export function NotificationsButton({ className }: { className?: string }) {
   const { data, refresh } = useLive();
   const count = useMemo(
     () => Object.values(data).reduce((sum, entry) => sum + notifiedTotal(entry), 0),
+    [data],
+  );
+  // The rows the list will have, known from the live counts before it loads: the placeholder
+  // shows exactly that many, so the panel does not change size when the list arrives.
+  const expectedRows = useMemo(
+    () => Object.values(data).reduce((sum, entry) => sum + notifiedPlaces(entry), 0),
     [data],
   );
   const [open, setOpen] = useState(false);
@@ -195,6 +201,7 @@ export function NotificationsButton({ className }: { className?: string }) {
               feed={shown}
               failed={failed}
               count={count}
+              expectedRows={expectedRows}
               notice={notice}
               onRetry={load}
               onClose={() => setOpen(false)}
@@ -242,6 +249,7 @@ function ListView({
   feed,
   failed,
   count,
+  expectedRows,
   notice,
   onRetry,
   onClose,
@@ -253,6 +261,8 @@ function ListView({
   feed: Feed | null;
   failed: boolean;
   count: number;
+  /** How many rows the list will show, from the live counts. */
+  expectedRows: number;
   notice: Notice;
   onRetry: () => void;
   onClose: () => void;
@@ -284,19 +294,35 @@ function ListView({
               Try again
             </Button>
           </div>
-        ) : !feed ? (
-          <ul aria-busy="true" aria-label="Loading notifications" className="flex flex-col">
-            {[0, 1, 2].map((row) => (
+        ) : !feed && expectedRows > 0 ? (
+          // Exactly as many rows as are coming, each the height of a real one.
+          <ul
+            aria-busy="true"
+            aria-label="Loading notifications"
+            className="flex flex-col divide-y"
+          >
+            {Array.from({ length: Math.min(expectedRows, 4) }, (_, row) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: placeholder rows never reorder
               <li key={row} className="flex gap-3 px-4 py-3">
                 <Skeleton className="size-8 shrink-0 rounded-full" />
-                <span className="flex flex-1 flex-col gap-2">
-                  <Skeleton className="h-4 w-2/3" />
-                  <Skeleton className="h-3.5 w-5/6" />
+                <span className="flex flex-1 flex-col gap-0.5">
+                  <span className="flex h-5 items-center">
+                    <Skeleton className="h-3.5 w-2/3" />
+                  </span>
+                  <span className="flex h-5 items-center">
+                    <Skeleton className="h-3 w-1/2" />
+                  </span>
+                  <span className="flex h-10 flex-col justify-center gap-1.5">
+                    <Skeleton className="h-3.5 w-full" />
+                    <Skeleton className="h-3.5 w-4/5" />
+                  </span>
                 </span>
+                <span aria-hidden="true" className="size-11 shrink-0 md:size-8" />
               </li>
             ))}
           </ul>
-        ) : feed.rows.length === 0 ? (
+        ) : !feed || feed.rows.length === 0 ? (
+          // Nothing new by the live counts: no placeholder to swap out.
           <div className="flex flex-col items-center gap-2 px-6 py-8 text-center">
             <BellIcon aria-hidden="true" className="size-5 text-muted-foreground" />
             <p className="font-medium">You are all caught up</p>
@@ -360,7 +386,8 @@ function NotificationItem({
           {row.latest ? ` · ${ago(row.latest.at)}` : ""}
         </span>
         {row.latest ? (
-          <span className="line-clamp-2 text-sm leading-5">
+          // Two lines kept for every preview, so each row is as tall as its placeholder.
+          <span className="line-clamp-2 min-h-10 text-sm leading-5">
             <span className="font-medium">{row.latest.author}:</span> {row.latest.text}
           </span>
         ) : null}

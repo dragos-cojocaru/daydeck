@@ -8,7 +8,7 @@ import { loadBoard } from "../board/board";
 import type { BufferDeps } from "../buffer/deps";
 import { createChallenge, joinChallenge } from "../challenges/service";
 import { closeChallenge, dataSummary, deleteMyData, leaveChallenge, setDayPaused } from "./data";
-import { closeFinishedChallenges, purgeOldData } from "./retention";
+import { closeFinishedChallenges, deletionTime, purgeOldData } from "./retention";
 
 const server = setupServer();
 beforeAll(() => server.listen({ onUnhandledFrame: "error" }));
@@ -135,6 +135,19 @@ describe("retention", () => {
       1,
     );
     expect(await deps.db.select().from(schema.entries)).toEqual([]);
+  });
+
+  it("purges a closed challenge on exactly the date people are shown", async () => {
+    await closeChallenge(deps.db, host.id, slug, T0);
+    const [row] = await deps.db
+      .select({ closedAt: schema.challenges.closedAt, timezone: schema.challenges.timezone })
+      .from(schema.challenges)
+      .where(eq(schema.challenges.slug, slug));
+    if (!row?.closedAt) throw new Error("not closed");
+    const due = deletionTime(row.closedAt, row.timezone);
+    // The purge run a day before keeps it; the run at its deletion time deletes it.
+    expect((await purgeOldData(deps.db, new Date(due.getTime() - 86_400_000))).challenges).toBe(0);
+    expect((await purgeOldData(deps.db, due)).challenges).toBe(1);
   });
 
   it("clears a post's preview once it has a day, its challenge closes, or after 30 days", async () => {

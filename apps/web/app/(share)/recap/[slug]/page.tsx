@@ -22,6 +22,7 @@ import { StateTip } from "@/features/board/state-tip";
 import { STATE_LABELS } from "@/features/board/state-words";
 import { ChallengeBar } from "@/features/challenges/challenge-bar";
 import { ChallengeTabs } from "@/features/challenges/challenge-tabs";
+import { shareMetadata } from "@/lib/site";
 import { bestStreak } from "@/lib/streak";
 import { getCurrentSessionOrNull } from "@/server/auth/current-user";
 import { visitorRecap } from "@/server/board/cached-recap";
@@ -30,7 +31,31 @@ import { navChallenges } from "@/server/challenges/nav";
 import { challengeHeader } from "@/server/challenges/service";
 import { getDb } from "@/server/db";
 
-export const metadata: Metadata = { title: "Recap", robots: { index: false } };
+/**
+ * A public recap's title and totals, so a shared recap link says what it is. A private or
+ * missing one gets a plain title: the preview never reveals more than the page would.
+ */
+export async function generateMetadata({ params }: PageProps<"/recap/[slug]">): Promise<Metadata> {
+  const { slug } = await params;
+  const recap = await visitorRecap(getDb(), slug, new Date());
+  if (!recap) {
+    return shareMetadata({
+      title: "Recap",
+      description: "A posting challenge recap on Daydeck.",
+      path: `/recap/${slug}`,
+      noIndex: true,
+      ownImage: true,
+    });
+  }
+  const people = recap.people === 1 ? "1 person" : `${recap.people} people`;
+  return shareMetadata({
+    title: `Recap of ${recap.title}`,
+    description: `${people} and ${recap.posts} ${recap.posts === 1 ? "post" : "posts"} over ${recap.days} days. Everyone's days on one board, and a badge for each person to share.`,
+    path: `/recap/${slug}`,
+    noIndex: true,
+    ownImage: true,
+  });
+}
 
 export default function RecapPage({ params }: PageProps<"/recap/[slug]">) {
   return (

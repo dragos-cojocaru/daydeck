@@ -168,10 +168,18 @@ async function Challenge({ params, searchParams }: PageProps<"/challenges/[slug]
   const todayState =
     position.kind === "prompt" ? (days[position.index]?.entry.state ?? null) : null;
   // If the host closed it now: the day it would be deleted, for the confirmation.
-  const closeNowDeletes = deletionCountdown(new Date(), new Date(), participant.timezone);
+  const closeNowDeletes = deletionCountdown(
+    { closedAt: new Date(), timeZone: challenge.timezone },
+    new Date(),
+    participant.timezone,
+  );
   const deletion =
     challenge.status === "closed" && challenge.closedAt
-      ? deletionCountdown(challenge.closedAt, new Date(), participant.timezone)
+      ? deletionCountdown(
+          { closedAt: challenge.closedAt, timeZone: challenge.timezone },
+          new Date(),
+          participant.timezone,
+        )
       : null;
 
   return (

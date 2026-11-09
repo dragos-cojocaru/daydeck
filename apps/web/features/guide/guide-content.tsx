@@ -187,7 +187,7 @@ const FAQ: [string, string][] = [
 ];
 
 const DOES = [
-  "Read your channels, and the posts on the channels you choose.",
+  "Read your channels, the posts on the channels you choose, and whether the ideas it saved for you are still there.",
   "Create drafts and ideas from the prompts you save, with a time when you use Schedule.",
   "Tag those drafts with the challenge's name, so you can find them in Buffer.",
   "Add the group's replies as Notes on a draft you asked feedback for.",

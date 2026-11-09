@@ -12,29 +12,47 @@ import { countsOnNetwork, networksText } from "@/features/challenges/rules";
 import { NoChannelsNotice } from "@/features/settings/no-channels";
 import { serviceName } from "@/features/settings/services";
 import { firstPromptDay, localDateOf } from "@/lib/day-engine";
+import { SITE_DESCRIPTION, shareMetadata } from "@/lib/site";
 import { getCurrentSessionOrNull } from "@/server/auth/current-user";
 import { listChannels } from "@/server/buffer/channels";
 import { cachedInvitePreview, peopleStamp } from "@/server/challenges/cached";
 import { getChallengeByInvite } from "@/server/challenges/service";
 import { isBanned } from "@/server/community/moderation";
 import { getDb } from "@/server/db";
+import { inviteCard } from "@/server/share/invite-card";
 
-export const metadata: Metadata = { title: "Join a challenge", robots: { index: false } };
+/** The challenge's own title and description, so a shared invite link says what it is. */
+export async function generateMetadata({ params }: PageProps<"/c/[code]">): Promise<Metadata> {
+  const { code } = await params;
+  const card = await inviteCard(code);
+  return shareMetadata({
+    title: card ? card.title : "Join a challenge",
+    description: card ? card.description : SITE_DESCRIPTION,
+    path: `/c/${code}`,
+    noIndex: true,
+    ownImage: true,
+  });
+}
 
 export default function InvitePage({ params }: PageProps<"/c/[code]">) {
   return (
+    // Aligned with the header like the other public pages. From 1024px the join box sits beside
+    // the details, so "Connect Buffer and join" is in view without scrolling.
     <main
       id="main"
-      className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-8 px-4 py-10 sm:py-12"
+      className="mx-auto grid w-full max-w-6xl flex-1 content-start gap-8 px-4 py-8 sm:px-6 sm:py-10 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-start lg:gap-12"
     >
       <Suspense
         fallback={
-          <div className="flex flex-col gap-4" aria-busy="true">
-            <span className="sr-only">Loading the invite</span>
-            <Skeleton className="h-10 w-3/4" />
-            <Skeleton className="h-24 rounded-xl" />
-            <Skeleton className="h-11 w-40" />
-          </div>
+          <>
+            <div className="flex max-w-2xl flex-col gap-4" aria-busy="true">
+              <span className="sr-only">Loading the invite</span>
+              <Skeleton className="h-6 w-56" />
+              <Skeleton className="h-10 w-3/4" />
+              <Skeleton className="h-24 rounded-xl" />
+            </div>
+            <Skeleton className="h-56 rounded-xl" />
+          </>
         }
       >
         <Invite params={params} />
@@ -82,79 +100,84 @@ async function Invite({ params }: Pick<PageProps<"/c/[code]">, "params">) {
 
   return (
     <>
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center gap-3">
-          <UserAvatar name={hostName} src={preview.host.avatarUrl} />
-          <p className="text-muted-foreground">{hostName} invites you to</p>
+      <div className="flex min-w-0 flex-col gap-8 [&>*]:max-w-2xl">
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-3">
+            <UserAvatar name={hostName} src={preview.host.avatarUrl} />
+            <p className="text-muted-foreground">{hostName} invites you to</p>
+          </div>
+          <h1 className="font-semibold text-3xl tracking-tight sm:text-4xl">{challenge.title}</h1>
+          <p className="text-lg">
+            {days} {days === 1 ? "day" : "days"} of posting,{" "}
+            {challenge.cadence === "daily" ? "one every day" : "one each weekday"}. Each day comes
+            with a prompt: a short idea for what to post.{" "}
+            {opensOn
+              ? started
+                ? `It started on ${formatDay(opensOn)}. Join now to start with today's prompt; you can still post earlier days to catch up.`
+                : `Everyone starts on ${formatDay(opensOn)}.`
+              : "Your day 1 is the day you join."}
+            {challenge.allowedServices.length > 0
+              ? ` Posts on ${networksText(challenge.allowedServices)} count.`
+              : null}
+          </p>
         </div>
-        <h1 className="font-semibold text-3xl tracking-tight sm:text-4xl">{challenge.title}</h1>
-        <p className="text-lg">
-          {days} {days === 1 ? "day" : "days"} of posting,{" "}
-          {challenge.cadence === "daily" ? "one every day" : "one each weekday"}. Each day comes
-          with a prompt: a short idea for what to post.{" "}
-          {opensOn
-            ? started
-              ? `It started on ${formatDay(opensOn)}. Join now to start with today's prompt; you can still post earlier days to catch up.`
-              : `Everyone starts on ${formatDay(opensOn)}.`
-            : "Your day 1 is the day you join."}
-          {challenge.allowedServices.length > 0
-            ? ` Posts on ${networksText(challenge.allowedServices)} count.`
-            : null}
-        </p>
+
+        <section aria-labelledby="first-prompts" className="flex flex-col gap-3">
+          <h2 id="first-prompts" className="font-medium">
+            The first prompts
+          </h2>
+          <ol className="flex flex-col gap-2">
+            {preview.prompts.slice(0, 3).map((prompt, index) => (
+              <li
+                key={`${index}-${prompt.title}`}
+                className="flex gap-3 rounded-xl border bg-card p-3"
+              >
+                <span className="w-12 shrink-0 text-muted-foreground text-sm">Day {index + 1}</span>
+                <span>{`${prompt.emoji} ${prompt.title}`.trim()}</span>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        <section aria-labelledby="whos-in" className="flex flex-col gap-3">
+          <h2 id="whos-in" className="font-medium">
+            {preview.members.length === 1
+              ? "1 person is in"
+              : `${preview.members.length} people are in`}
+          </h2>
+          <ul className="flex flex-wrap gap-2">
+            {named.slice(0, 12).map((member, index) => (
+              <li
+                key={`${index}-${member.name}`}
+                className="flex items-center gap-2 rounded-full border py-1 pr-3 pl-1 text-sm"
+              >
+                <UserAvatar name={member.name ?? "?"} src={member.avatarUrl} size="sm" />
+                {member.name ?? "Someone"}
+              </li>
+            ))}
+          </ul>
+          {unnamed > 0 ? (
+            <p className="text-muted-foreground text-sm">
+              {unnamed === 1 ? "1 more person keeps" : `${unnamed} more people keep`} their name
+              private on this public page.
+            </p>
+          ) : null}
+        </section>
       </div>
 
-      <section aria-labelledby="first-prompts" className="flex flex-col gap-3">
-        <h2 id="first-prompts" className="font-medium">
-          The first prompts
-        </h2>
-        <ol className="flex flex-col gap-2">
-          {preview.prompts.slice(0, 3).map((prompt, index) => (
-            <li
-              key={`${index}-${prompt.title}`}
-              className="flex gap-3 rounded-xl border bg-card p-3"
-            >
-              <span className="w-12 shrink-0 text-muted-foreground text-sm">Day {index + 1}</span>
-              <span>{`${prompt.emoji} ${prompt.title}`.trim()}</span>
-            </li>
-          ))}
-        </ol>
-      </section>
-
-      <section aria-labelledby="whos-in" className="flex flex-col gap-3">
-        <h2 id="whos-in" className="font-medium">
-          {preview.members.length === 1
-            ? "1 person is in"
-            : `${preview.members.length} people are in`}
-        </h2>
-        <ul className="flex flex-wrap gap-2">
-          {named.slice(0, 12).map((member, index) => (
-            <li
-              key={`${index}-${member.name}`}
-              className="flex items-center gap-2 rounded-full border py-1 pr-3 pl-1 text-sm"
-            >
-              <UserAvatar name={member.name ?? "?"} src={member.avatarUrl} size="sm" />
-              {member.name ?? "Someone"}
-            </li>
-          ))}
-        </ul>
-        {unnamed > 0 ? (
-          <p className="text-muted-foreground text-sm">
-            {unnamed === 1 ? "1 more person keeps" : `${unnamed} more people keep`} their name
-            private on this public page.
-          </p>
-        ) : null}
-      </section>
-
-      <JoinSection
-        code={code}
-        session={session}
-        challengeId={challenge.id}
-        slug={challenge.slug}
-        open={challenge.status === "open"}
-        allowedServices={challenge.allowedServices}
-        paused={challenge.invitePaused}
-        listed={listed}
-      />
+      {/* Stays in view beside the details on wide screens. */}
+      <div className="lg:sticky lg:top-6">
+        <JoinSection
+          code={code}
+          session={session}
+          challengeId={challenge.id}
+          slug={challenge.slug}
+          open={challenge.status === "open"}
+          allowedServices={challenge.allowedServices}
+          paused={challenge.invitePaused}
+          listed={listed}
+        />
+      </div>
     </>
   );
 }

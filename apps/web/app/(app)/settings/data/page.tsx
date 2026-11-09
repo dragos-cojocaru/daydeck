@@ -39,6 +39,7 @@ const SCOPE_WORDS: Record<string, string> = {
   "account:read": "See your Buffer name, picture and channels",
   "posts:read": "Read your posts, to see which days you posted",
   "posts:write": "Save drafts for you. It never publishes them.",
+  "ideas:read": "See whether the ideas Daydeck saved for you are still there",
   "ideas:write": "Save a prompt as an idea in Buffer",
   "notes:read": "Read the notes on your drafts",
   "notes:write": "Save your group's feedback as notes on your drafts",

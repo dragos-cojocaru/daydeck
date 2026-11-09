@@ -130,6 +130,14 @@ export function notifiedTotal(entry: LiveEntry | undefined): number {
     .reduce((sum, place) => sum + entry.unread[place], 0);
 }
 
+/** How many places with something new you get notified about: one notification row each. */
+export function notifiedPlaces(entry: LiveEntry | undefined): number {
+  if (!entry || entry.muted.includes("all")) return 0;
+  return (["updates", "chat", "posts", "feedback"] as const).filter(
+    (place) => !entry.muted.includes(place) && entry.unread[place] > 0,
+  ).length;
+}
+
 export function unreadTotal(entry: LiveEntry | undefined): number {
   if (!entry) return 0;
   const { updates, chat, posts, feedback } = entry.unread;

@@ -4,6 +4,11 @@
 class. Everyone gets one prompt a day, turns it into a post in [Buffer](https://buffer.com), and
 sees the group's progress on a shared board.
 
+**Try it: [daydeckapp.vercel.app](https://daydeckapp.vercel.app).** Open the demo challenge
+under Popular challenges, connect your Buffer account and join: your day 1 is today. The demo's
+other members are samples, so you can try the board, the chat and feedback on drafts on your own.
+The live app stays up until 8 December 2026.
+
 Daydeck is built for [Buffer Commit](https://buffer.com/api/commit), Buffer's contest for apps
 built on the Buffer API. It is built on the Buffer API, and not affiliated with or endorsed by
 Buffer.
@@ -175,9 +180,9 @@ In Buffer, open **Settings**, then **API**, and create an app client:
 - Leave **Public client** unchecked: the secret stays on the server.
 - Redirect URI: `https://localhost:3000/api/auth/buffer/callback` for local use, or
   `https://<your-domain>/api/auth/buffer/callback` for a deployment. It must match exactly.
-- Permissions: `account:read`, `posts:read`, `posts:write`, `ideas:write`, `notes:read`,
-  `notes:write` and `offline_access`. The app cannot work without `account:read` and
-  `offline_access`.
+- Permissions: `account:read`, `posts:read`, `posts:write`, `ideas:read`, `ideas:write`,
+  `notes:read`, `notes:write` and `offline_access`. The app cannot work without `account:read`
+  and `offline_access`. `ideas:read` only lets Daydeck see when you delete an idea it saved.
 
 Set `BUFFER_CLIENT_ID`, `BUFFER_CLIENT_SECRET` and `BUFFER_REDIRECT_URI`.
 

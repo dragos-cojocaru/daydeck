@@ -1,7 +1,7 @@
 // The two daily housekeeping jobs from the plan: close challenges whose last day is over, and
 // delete data on the retention schedule. Both are safe to run again.
 import { and, type Database, eq, isNotNull, lt, schema, sql } from "@daydeck/db";
-import { daysBetween, type LocalDate, localDateOf } from "@/lib/day-engine";
+import { addDays, daysBetween, type LocalDate, localDateOf, localDayRange } from "@/lib/day-engine";
 
 const { challenges, endpointHits, linkPreviews, participants, seenPosts, sessions } = schema;
 
@@ -13,22 +13,27 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 export const PURGE_TIME_UTC = { hour: 0, minute: 45 } as const;
 export const PURGE_CRON = `${PURGE_TIME_UTC.minute} ${PURGE_TIME_UTC.hour} * * *`;
 
-/** When a challenge that closed at `closedAt` is deleted: the first purge after 30 days. */
-export function deletionTime(closedAt: Date): Date {
-  const cutoff = closedAt.getTime() + RETENTION_DAYS * DAY_MS;
-  const run = new Date(cutoff);
+/**
+ * When a challenge that closed at `closedAt` is deleted: the first daily purge on or after the
+ * start of its 30th day after closing, in the challenge's own time zone. A day always holds one
+ * purge, so people in that zone see "in 30 days" on the day it closes, not 29 or 31.
+ */
+export function deletionTime(closedAt: Date, challengeTimeZone: string): Date {
+  const closedOn = localDateOf(closedAt, challengeTimeZone);
+  const { start } = localDayRange(addDays(closedOn, RETENTION_DAYS), challengeTimeZone);
+  const run = new Date(start);
   run.setUTCHours(PURGE_TIME_UTC.hour, PURGE_TIME_UTC.minute, 0, 0);
-  if (run.getTime() <= cutoff) run.setTime(run.getTime() + DAY_MS);
+  if (run.getTime() < start.getTime()) run.setTime(run.getTime() + DAY_MS);
   return run;
 }
 
 /** The deletion as one person sees it: the day in their time zone, and how many days away. */
 export function deletionCountdown(
-  closedAt: Date,
+  challenge: { closedAt: Date; timeZone: string },
   now: Date,
   timeZone: string,
 ): { date: LocalDate; days: number } {
-  const date = localDateOf(deletionTime(closedAt), timeZone);
+  const date = localDateOf(deletionTime(challenge.closedAt, challenge.timeZone), timeZone);
   return { date, days: Math.max(0, daysBetween(localDateOf(now, timeZone), date)) };
 }
 
@@ -69,7 +74,6 @@ export async function purgeOldData(
   previews: number;
   postPreviews: number;
 }> {
-  const cutoff = new Date(now.getTime() - RETENTION_DAYS * DAY_MS);
   const closedHere = db
     .select({ id: participants.id })
     .from(participants)
@@ -78,7 +82,13 @@ export async function purgeOldData(
   const [gone, expired, counters, previews, postPreviews] = await Promise.all([
     db
       .delete(challenges)
-      .where(and(eq(challenges.status, "closed"), lt(challenges.closedAt, cutoff)))
+      // deletionTime as SQL: its 30th local day has started, so this run deletes it.
+      .where(
+        and(
+          eq(challenges.status, "closed"),
+          sql`((date_trunc('day', ${challenges.closedAt} at time zone ${challenges.timezone}) + make_interval(days => ${RETENTION_DAYS})) at time zone ${challenges.timezone}) <= ${now}`,
+        ),
+      )
       .returning({ id: challenges.id }),
     db.delete(sessions).where(lt(sessions.expiresAt, now)).returning({ id: sessions.idHash }),
     db
