@@ -918,9 +918,23 @@ export function ChannelView({
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete this message?</AlertDialogTitle>
-            <AlertDialogDescription render={<div />}>
-              <p className="line-clamp-3 wrap-anywhere">{deleting?.body}</p>
-              <p className="mt-2">It goes away for everyone. This cannot be undone.</p>
+            <AlertDialogDescription render={<div />} className="flex flex-col gap-3">
+              {/* The message itself, set apart from the warning, as the member card shows it. */}
+              {deleting ? (
+                <blockquote className="flex w-full flex-col gap-0.5 self-stretch rounded-lg border bg-card p-2.5 text-card-foreground text-sm">
+                  <span className="text-muted-foreground text-xs">
+                    {deleting.author?.name ?? "Someone"} ·{" "}
+                    {new Date(deleting.createdAt).toLocaleString(undefined, {
+                      day: "numeric",
+                      month: "short",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
+                  <span className="line-clamp-3 wrap-anywhere leading-5">{deleting.body}</span>
+                </blockquote>
+              ) : null}
+              <p>It goes away for everyone. This cannot be undone.</p>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

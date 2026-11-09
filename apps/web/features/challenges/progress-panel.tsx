@@ -202,7 +202,12 @@ export function PostQuestion({
         </details>
       ) : null}
       <output
-        className={cn("block text-sm", state.status === "error" && "text-destructive")}
+        // Hidden while empty, so it adds no space; screen readers still hear the result.
+        className={cn(
+          "block text-sm",
+          state.status === "idle" && "sr-only",
+          state.status === "error" && "text-destructive",
+        )}
         aria-live="polite"
       >
         {state.status === "idle" ? "" : state.message}
@@ -233,7 +238,12 @@ export function OtherPost({ post, freeDays }: { post: PostSummary; freeDays: Day
         />
       )}
       <output
-        className={cn("block text-sm", state.status === "error" && "text-destructive")}
+        // Hidden while empty, so it adds no space; screen readers still hear the result.
+        className={cn(
+          "block text-sm",
+          state.status === "idle" && "sr-only",
+          state.status === "error" && "text-destructive",
+        )}
         aria-live="polite"
       >
         {state.status === "idle" ? "" : state.message}

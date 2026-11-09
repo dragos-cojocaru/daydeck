@@ -88,27 +88,35 @@ export function JoinForm({
           <li>You can leave the challenge at any time.</li>
         </ul>
       </div>
-      <label className="flex min-h-11 cursor-pointer items-start gap-3">
-        <input
-          type="checkbox"
-          name="agreed"
-          required
-          aria-describedby={noteId}
-          className="mt-0.5 size-5 accent-primary"
-        />
-        <span>I understand what joining shares</span>
-      </label>
-      <label className="flex min-h-11 cursor-pointer items-start gap-3">
-        <input type="checkbox" name="wallOptIn" className="mt-0.5 size-5 accent-primary" />
-        <span className="flex flex-col">
-          <span>Show my name and post links on the challenge's recap page</span>
-          <span className="text-muted-foreground text-sm">
-            {listed
-              ? "Optional. This challenge is on Daydeck's homepage, so anyone can see its recap. You can change this later."
-              : "Optional. Anyone with the recap's link can see it. You can change this later."}
+      {/* The two choices as one group: same box size, and only the space a group needs. The
+          whole label is the click target, so each stays well above 24px (WCAG 2.5.8). */}
+      <div className="flex flex-col gap-4">
+        <label className="flex cursor-pointer items-start gap-3 leading-6">
+          <input
+            type="checkbox"
+            name="agreed"
+            required
+            aria-describedby={noteId}
+            className="mt-0.5 size-5 shrink-0 accent-primary"
+          />
+          <span>I understand what joining shares</span>
+        </label>
+        <label className="flex cursor-pointer items-start gap-3 leading-6">
+          <input
+            type="checkbox"
+            name="wallOptIn"
+            className="mt-0.5 size-5 shrink-0 accent-primary"
+          />
+          <span className="flex flex-col">
+            <span>Show my name and post links on the challenge's recap page</span>
+            <span className="text-muted-foreground text-sm leading-5">
+              {listed
+                ? "Optional. This challenge is on Daydeck's homepage, so anyone can see its recap. You can change this later."
+                : "Optional. Anyone with the recap's link can see it. You can change this later."}
+            </span>
           </span>
-        </span>
-      </label>
+        </label>
+      </div>
 
       <div className="flex flex-col gap-2">
         <Button type="submit" className="h-11 w-full px-5 sm:w-fit" disabled={pending}>

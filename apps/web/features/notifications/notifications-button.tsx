@@ -32,6 +32,7 @@ import {
 } from "react";
 import { notifiedPlaces, notifiedTotal, useLive } from "@/features/community/live";
 import { PLACES } from "@/features/community/places";
+import { relativeTime } from "@/lib/relative-time";
 import type { Mutable, NotificationRow, NotificationSetting } from "@/server/community/live";
 import type { Place } from "@/server/community/service";
 import { markAllReadAction, setMutedAction } from "./actions";
@@ -80,11 +81,7 @@ function placeWord(place: Place, count: number): string {
 }
 
 function ago(iso: string): string {
-  const minutes = Math.max(0, Math.round((Date.now() - Date.parse(iso)) / 60_000));
-  const format = new Intl.RelativeTimeFormat("en", { numeric: "auto", style: "short" });
-  if (minutes < 60) return format.format(-minutes, "minute");
-  if (minutes < 48 * 60) return format.format(-Math.round(minutes / 60), "hour");
-  return format.format(-Math.round(minutes / 1440), "day");
+  return relativeTime(Date.parse(iso), Date.now(), "short");
 }
 
 /**

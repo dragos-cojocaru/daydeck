@@ -3,6 +3,7 @@ import { buttonVariants } from "@daydeck/ui/components/button";
 import { cn } from "@daydeck/ui/lib/utils";
 import { CircleCheckIcon, ExternalLinkIcon, PlugZapIcon, RefreshCwIcon } from "lucide-react";
 import { BUFFER_CHANNEL_SETTINGS_URL } from "@/lib/buffer-links";
+import { relativeTime } from "@/lib/relative-time";
 import { getConnectionSummary, requireUser } from "@/server/auth/current-user";
 import { listChannels } from "@/server/buffer/channels";
 import type { ReconnectReason } from "@/server/buffer/errors";
@@ -137,13 +138,5 @@ function ReconnectNotice({ reason }: { reason: ReconnectReason | null }) {
 /** "Last updated 3 hours ago": when the channel list was last copied from Buffer. */
 function lastSyncLabel(at: number | null): string {
   if (!at) return "Not updated yet.";
-  const minutes = Math.round((Date.now() - at) / 60_000);
-  const format = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
-  const ago =
-    minutes < 60
-      ? format.format(-minutes, "minute")
-      : minutes < 48 * 60
-        ? format.format(-Math.round(minutes / 60), "hour")
-        : format.format(-Math.round(minutes / 1440), "day");
-  return `Last updated ${ago}.`;
+  return `Last updated ${relativeTime(at, Date.now())}.`;
 }
