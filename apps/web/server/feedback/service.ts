@@ -261,6 +261,8 @@ export interface GroupRequestView {
   draftSnapshot: string;
   /** What the viewer already replied to this request. */
   myReplies: { id: string; text: string }[];
+  /** How many replies others sent. Only the count: the asker alone sees what they say. */
+  otherReplies: number;
   /** False once the viewer sent the most replies one person can send to this request. */
   canReply: boolean;
 }
@@ -382,6 +384,9 @@ export async function feedbackForParticipant(
       promptTitle: request.promptTitle,
       draftSnapshot: request.draftSnapshot,
       myReplies,
+      otherReplies: items.filter(
+        ({ item }) => item.requestId === request.id && item.authorId !== viewer.id,
+      ).length,
       canReply: myReplies.length < MAX_REPLIES_PER_PERSON,
     };
   });

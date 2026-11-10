@@ -315,6 +315,28 @@ describe("replying", () => {
         canReply: true,
       },
     ]);
+    // Your own reply is not counted among the others'.
+    expect(benView.forGroup[0]?.otherReplies).toBe(0);
+
+    // Another member sees how many replied, never what they said.
+    await joinChallenge(deps.db, cara, challenge, [], T0);
+    const [caraParticipant] = await deps.db
+      .select()
+      .from(schema.participants)
+      .where(
+        and(
+          eq(schema.participants.challengeId, challenge.id),
+          eq(schema.participants.userId, cara.id),
+        ),
+      );
+    if (!caraParticipant) throw new Error("Cara did not join");
+    const caraView = await feedbackForParticipant(
+      deps.db,
+      { participantId: caraParticipant.id, challengeId: challenge.id, userId: cara.id },
+      T0,
+    );
+    expect(caraView.forGroup).toMatchObject([{ id: request.id, myReplies: [], otherReplies: 1 }]);
+    expect(JSON.stringify(caraView)).not.toContain("Nice hook");
 
     // Someone else's participant ID shows nothing, and a closed request leaves the group's list.
     const borrowed = await feedbackForParticipant(

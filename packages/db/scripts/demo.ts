@@ -255,7 +255,7 @@ const FEEDBACK = [
     key: "sophie",
     day: 4,
     draft:
-      "Three drafts every Sunday. That is my whole system for posting daily without burning out. Here is how it works ↓",
+      "Three drafts every Sunday. That is my whole system for posting daily without burning out.\n\n1. Sunday evening, I write three rough drafts in Buffer.\n2. Each morning, I pick one and finish it in ten minutes.\n3. I post, then reply to two people before I close the app.\n\nWhat keeps you posting?",
     hoursAgo: 3,
     replies: [
       { key: "grace", text: "The arrow at the end is a nice touch. Add one example of a draft?" },

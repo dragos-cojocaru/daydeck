@@ -98,10 +98,21 @@ function GroupRequest({ request }: { request: GroupRequestView }) {
     <li className="flex min-w-0 flex-col gap-4 rounded-xl border bg-card p-4 sm:p-5">
       <div className="flex min-w-0 items-center gap-3">
         <UserAvatar name={request.askerName} src={request.askerAvatarUrl} />
-        <p className="min-w-0 leading-6 wrap-anywhere">
-          <span className="font-medium">{request.askerName}</span>{" "}
-          <span className="text-muted-foreground">asked about {label}</span>
-        </p>
+        <div className="flex min-w-0 flex-col">
+          <p className="leading-6 wrap-anywhere">
+            <span className="font-medium">{request.askerName}</span>{" "}
+            <span className="text-muted-foreground">asked about {label}</span>
+          </p>
+          {/* Replies stay between each helper and the asker, so the group sees only how many. */}
+          <p className="text-muted-foreground text-sm leading-5">
+            {request.otherReplies === 0
+              ? "No replies yet"
+              : request.otherReplies === 1
+                ? "1 reply so far"
+                : `${request.otherReplies} replies so far`}{" "}
+            · only {request.askerName} sees replies
+          </p>
+        </div>
       </div>
       <Draft text={request.draftSnapshot} label={`${request.askerName}'s draft`} />
       {request.myReplies.length > 0 ? (
