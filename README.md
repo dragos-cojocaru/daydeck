@@ -142,6 +142,7 @@ Inngest (schedules and events) ──> /api/inngest ──> the same server code
   | `challenge-close` | Daily, 00:15 UTC | Closes fixed-date challenges after their last day |
   | `data-purge` | Daily, 00:45 UTC | Deletes challenges closed 30 days ago, old sessions, link previews and counters, and clears post previews that are no longer needed |
   | `feedback-write-note` | After a feedback reply | Saves the reply as a Note on the draft in Buffer (only with `FEATURE_BUFFER_NOTES=true`) |
+  | `demo-refresh` | Every 30 minutes | Keeps the demo challenge lively as its sample members (only with `DEMO_INVITE_CODE`, until `DEMO_UNTIL`) |
 
 - **The matcher** runs only for posts written outside Daydeck, to find which prompt they
   answer. A post saved from Daydeck is already linked to its day. `MATCHER_PROVIDER` picks it:
@@ -255,8 +256,11 @@ under Popular challenges, with a "Demo" label.
    calls Buffer for them.
 2. Set `DEMO_INVITE_CODE` to that code, and `DEMO_UNTIL` to the last day to show it, then
    redeploy.
-3. Run the seed again to move the sample dates up to today (the "posts this week" count and the
-   link cards last about a week). People who joined keep their own days and messages.
+3. The `demo-refresh` Inngest job (a scheduled background task) keeps it lively every 30 minutes
+   until `DEMO_UNTIL`. Sample members post through the day, start a new round after their 7 days,
+   chat, share their posts and ask for and give feedback. It only ever writes as sample members,
+   so people who joined keep their own days and messages. Running the seed again does one round
+   of the same work at once.
 4. To end it, `pnpm --filter @daydeck/db demo:remove` closes it and removes the sample members.
 
 ### 9. Local development

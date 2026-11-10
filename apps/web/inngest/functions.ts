@@ -4,6 +4,8 @@ import { z } from "zod";
 import { closeFinishedChallenges, PURGE_CRON, purgeOldData } from "@/server/account/retention";
 import { getBufferDeps } from "@/server/buffer/config";
 import { getDb } from "@/server/db";
+import { refreshDemo } from "@/server/demo/refresh";
+import { env } from "@/server/env";
 import { type CheckResult, checkParticipant } from "@/server/progress/check";
 import { matchPostFromEnv } from "@/server/progress/matcher";
 import { dueParticipantIds, rollOverDays } from "@/server/progress/schedule";
@@ -120,6 +122,21 @@ export const dataPurge = inngest.createFunction(
   async ({ step }) => step.run("purge", () => purgeOldData(getDb(), new Date())),
 );
 
+/**
+ * Keeps the demo challenge lively until DEMO_UNTIL: its sample members post, chat, share and give
+ * feedback through the day. Does nothing without DEMO_INVITE_CODE.
+ */
+export const demoRefresh = inngest.createFunction(
+  { id: "demo-refresh", triggers: [{ cron: "*/30 * * * *" }], singleton: { mode: "skip" } },
+  async ({ step }) =>
+    step.run("tick", () =>
+      refreshDemo(getDb(), new Date(), {
+        inviteCode: env.DEMO_INVITE_CODE,
+        until: env.DEMO_UNTIL,
+      }),
+    ),
+);
+
 // Every Inngest function the app serves, registered in app/api/inngest/route.ts.
 export const functions: InngestFunction.Any[] = [
   challengeSweep,
@@ -128,4 +145,5 @@ export const functions: InngestFunction.Any[] = [
   feedbackWriteNote,
   challengeClose,
   dataPurge,
+  demoRefresh,
 ];

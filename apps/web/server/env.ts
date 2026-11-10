@@ -31,7 +31,8 @@ const schema = z.object({
   ANTHROPIC_API_KEY: z.string().min(1).optional(),
   // The invite code of the public demo challenge the homepage lists first, for Buffer's judges.
   DEMO_INVITE_CODE: z.string().min(10).max(64).optional(),
-  // The last day (YYYY-MM-DD, UTC) the homepage lists the demo challenge. Empty: no end.
+  // The last day (YYYY-MM-DD, UTC) the homepage lists the demo challenge and the "demo-refresh"
+  // job updates it. Empty: no end.
   DEMO_UNTIL: z.iso.date().optional(),
   SENTRY_DSN: z.url().optional(),
   // Who runs this copy of Daydeck, for the privacy page: the law asks for a name and a contact.

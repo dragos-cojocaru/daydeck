@@ -34,6 +34,7 @@ import { ChallengeRules, countsOnNetwork, networksText } from "@/features/challe
 import { CommunityCard } from "@/features/community/community-card";
 import { AutoRefresh } from "@/features/community/live";
 import { AskFeedbackButton } from "@/features/feedback/ask-feedback-button";
+import { DemoNotice } from "@/features/home/demo-notice";
 import { NoChannelsNotice } from "@/features/settings/no-channels";
 import { daysBetween, positionOn } from "@/lib/day-engine";
 import { deletionPhrase } from "@/lib/deletion-words";
@@ -44,6 +45,7 @@ import { listChannels } from "@/server/buffer/channels";
 import { backgroundBudget } from "@/server/buffer/rate-limits";
 import { challengeForMember, type DayView } from "@/server/challenges/service";
 import { getDb } from "@/server/db";
+import { env } from "@/server/env";
 import { openFeedbackEntryIds } from "@/server/feedback/service";
 import { matcherMode } from "@/server/progress/matcher";
 import { countMatched, progressView } from "@/server/progress/view";
@@ -244,6 +246,9 @@ async function Challenge({ params, searchParams }: PageProps<"/challenges/[slug]
         <h1 className="font-semibold text-3xl tracking-tight">{challenge.title}</h1>
         <DayStrip states={strip} saved={done} size="sm" />
       </header>
+      {env.DEMO_INVITE_CODE && challenge.inviteCode === env.DEMO_INVITE_CODE ? (
+        <DemoNotice />
+      ) : null}
 
       {!budget.ok ? (
         <output className="block rounded-lg bg-muted p-3 text-sm">
